@@ -454,8 +454,9 @@ def _write_forecast_rows(w, f):
     w.writerow(["Capacity recommendation", "Value"])
     w.writerow(["Predicted peak occupancy %", cap["peakPct"], cap["peakDay"]])
     w.writerow(["Peak window", cap["peakWindow"] or "-"])
-    w.writerow(["Recommended walk-in buffer (seats)", cap["recommendedWalkInBuffer"]])
-    w.writerow(["No-show over-booking headroom (seats)", cap["overbookHeadroom"]])
+    not_ready = "Not enough data yet"
+    w.writerow(["Recommended walk-in buffer (seats)", not_ready if cap["recommendedWalkInBuffer"] is None else cap["recommendedWalkInBuffer"]])
+    w.writerow(["No-show over-booking headroom (seats)", not_ready if cap["overbookHeadroom"] is None else cap["overbookHeadroom"]])
     for rec in f["recommendations"]:
         w.writerow([f"Recommendation - {rec['title']}", rec["text"]])
 

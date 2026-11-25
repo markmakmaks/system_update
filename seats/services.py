@@ -1692,6 +1692,7 @@ def get_date_report(start, end=None):
 FORECAST_HISTORY_DAYS = 90      # how far back the history is read
 FORECAST_MIN_DAYS = 7           # days of history at which the model is "historical" rather than "blended"
 FORECAST_DAYS = 7
+MIN_SESSIONS_FOR_CAPACITY = 20  # walk-in buffer / no-show headroom need this many sessions, or FORECAST_MIN_DAYS of history
 HIGH_DEMAND_PCT = 70.0          # predicted occupancy at or above this is "Peak / High Demand"
 MODERATE_DEMAND_PCT = 40.0      # ... at or above this (and below high) is "Moderate"
 SEAT_FULL_PCT = 50.0            # a seat counts as "taken" at an hour when it is used on >= this share of days
@@ -2016,9 +2017,13 @@ def get_predictive_analytics(now=None):
     # ---- capacity & no-show recommendations
     walkin_share = _smooth_rate(walkin_sessions, len(session_rows), PRIOR_WALKIN_SHARE, PRIOR_WALKIN_WEIGHT)
     peak_pct = busiest_day["peakUtilization"]
-    buffer = max(1, math.ceil(seat_total * peak_pct / 100 * walkin_share)) if seat_total else 0
-    reserved_at_peak = seat_total * peak_pct / 100 * (1 - walkin_share)
-    headroom = int(reserved_at_peak * no_show_rate)
+    # The walk-in buffer and the no-show headroom are only worth showing once there is enough real data behind them.
+    capacity_ready = n_days >= FORECAST_MIN_DAYS or len(session_rows) >= MIN_SESSIONS_FOR_CAPACITY
+    buffer = headroom = None
+    if capacity_ready:
+        buffer = max(1, math.ceil(seat_total * peak_pct / 100 * walkin_share)) if seat_total else 0
+        reserved_at_peak = seat_total * peak_pct / 100 * (1 - walkin_share)
+        headroom = int(reserved_at_peak * no_show_rate)
     week_reservations = sum(d["reservations"] for d in days)
     week_no_shows = round(week_reservations * no_show_rate, 1)
     top_window = today_windows[0] if today_windows else (busiest_day["windows"][0] if busiest_day["windows"] else None)
@@ -2031,6 +2036,14 @@ def get_predictive_analytics(now=None):
             "text": f"{top_window['message']}. Expect the library to be close to full then; remind students to "
                     "book ahead and release seats they no longer need.",
         })
+    if not capacity_ready:
+        recommendations.append({
+            "level": "info",
+            "title": "Walk-in buffer & no-show headroom",
+            "text": f"Not enough data yet. These need at least {MIN_SESSIONS_FOR_CAPACITY} sessions or "
+                    f"{FORECAST_MIN_DAYS} days of history (so far: {len(session_rows)} session"
+                    f"{'s' if len(session_rows) != 1 else ''}, {n_days} day{'s' if n_days != 1 else ''}).",
+        })
     if buffer:
         recommendations.append({
             "level": "info",
@@ -2038,7 +2051,7 @@ def get_predictive_analytics(now=None):
             "text": f"Keep about {buffer} seat{'s' if buffer != 1 else ''} unreserved for walk-ins around the peak "
                     f"(walk-ins are ~{round(walkin_share * 100)}% of sessions).",
         })
-    if headroom >= 1:
+    if headroom:
         recommendations.append({
             "level": "info",
             "title": "No-show headroom",
@@ -2095,6 +2108,8 @@ def get_predictive_analytics(now=None):
             "peakDay": busiest_day["weekday"],
             "peakWindow": top_window["label"] if top_window else None,
             "walkInShare": round(walkin_share * 100, 1),
+            "ready": capacity_ready,
+            "sessionsNeeded": max(0, MIN_SESSIONS_FOR_CAPACITY - len(session_rows)),
             "recommendedWalkInBuffer": buffer,
             "overbookHeadroom": headroom,
             "expectedReservationsWeek": week_reservations,

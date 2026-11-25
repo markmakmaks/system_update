@@ -1501,9 +1501,11 @@ function renderForecast() {
     </div>`;
   document.getElementById('fc-capacity').innerHTML =
     card('Predicted peak occupancy', `${Math.round(c.peakPct)}%`, `${esc(c.peakDay)}${c.peakWindow ? ` &bull; ${esc(c.peakWindow)}` : ''}`, c.peakPct >= 70 ? 'text-rose-600' : c.peakPct >= 40 ? 'text-amber-600' : 'text-emerald-600') +
-    card('Walk-in buffer', `${c.recommendedWalkInBuffer} seat${c.recommendedWalkInBuffer === 1 ? '' : 's'}`, `Recommended to keep free (walk-ins ~${Math.round(c.walkInShare)}% of sessions)`, 'text-royal-600') +
+    (c.ready
+      ? card('Walk-in buffer', `${c.recommendedWalkInBuffer} seat${c.recommendedWalkInBuffer === 1 ? '' : 's'}`, `Recommended to keep free (walk-ins ~${Math.round(c.walkInShare)}% of sessions)`, 'text-royal-600')
+      : card('Walk-in buffer', '<span class="text-lg">Not enough data yet</span>', `Needs ${f.meta.sessionsAnalysed < 20 ? `${c.sessionsNeeded} more session${c.sessionsNeeded === 1 ? '' : 's'}` : 'more history'} or 7 days of history (now ${f.meta.historyDays})`, 'text-slate-400')) +
     card('Expected no-show rate', `${n.rate}%`, `Students ${n.byRole.student}% &bull; Professors ${n.byRole.professor}%`, 'text-amber-600') +
-    card('Expected no-shows', `${n.perDay}/day`, `${n.nextSevenDays} over the next 7 days &bull; headroom ${c.overbookHeadroom} seat${c.overbookHeadroom === 1 ? '' : 's'}`, 'text-navy-900');
+    card('Expected no-shows', `${n.perDay}/day`, `${n.nextSevenDays} over the next 7 days${c.ready ? ` &bull; headroom ${c.overbookHeadroom} seat${c.overbookHeadroom === 1 ? '' : 's'}` : ' &bull; headroom: not enough data yet'}`, 'text-navy-900');
 
   // 7-day trend + cards
   const maxVol = Math.max(1, ...f.days.map(d => d.reservations));

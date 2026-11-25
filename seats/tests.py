@@ -408,12 +408,18 @@ class PredictiveAnalyticsTests(TestCase):
         self.assertIn(f["hourly"][12]["risk"], ("low", "moderate", "peak"))
         self.assertGreater(f["noShow"]["rate"], 0)
         self.assertEqual(f["bottlenecks"]["seats"], [])
+        self.assertFalse(f["capacity"]["ready"])  # not enough data: no walk-in buffer / headroom yet
+        self.assertIsNone(f["capacity"]["recommendedWalkInBuffer"])
+        self.assertIsNone(f["capacity"]["overbookHeadroom"])
+        self.assertTrue(any("Not enough data yet" in r["text"] for r in f["recommendations"]))
 
     def test_forecast_learns_from_history_and_booked_slots(self):
         self.add_history(10)
         f = sv.get_predictive_analytics()
         self.assertEqual(f["meta"]["mode"], "historical")
         self.assertEqual(f["meta"]["historyDays"], 10)
+        self.assertTrue(f["capacity"]["ready"])  # 10 days of history is enough
+        self.assertIsNotNone(f["capacity"]["recommendedWalkInBuffer"])
         self.assertEqual(f["bottlenecks"]["seats"][0]["seat"], "A01")
         self.assertEqual(f["bottlenecks"]["seats"][0]["projectedFullHour"], 10)
         self.assertEqual((f["noShow"]["expiredCount"], f["noShow"]["showedCount"]), (1, 10))
