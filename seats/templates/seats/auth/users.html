@@ -1,0 +1,56 @@
+{% extends "seats/base.html" %}
+{% block content %}
+  {% include "seats/auth/_shell_top.html" %}
+  <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6 space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h1 class="text-xl font-bold text-navy-900">User directory</h1>
+        <p class="text-sm text-slate-500">Signed in as {{ current_user.name }} ({{ current_user.roleText }})</p>
+      </div>
+      {% include "seats/auth/_admin_nav.html" %}
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-sm font-semibold">
+        <a href="?tab=approved&role={{ role_filter }}{% if flt.start_value %}&start={{ flt.start_value }}&end={{ flt.end_value }}{% endif %}" class="px-4 py-1.5 rounded-lg {% if tab == 'approved' %}bg-royal-600 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-200/60{% endif %}">Approved <span class="ml-1 text-[10px] opacity-70">{{ counts.approved }}</span></a>
+        <a href="?tab=pending&role={{ role_filter }}{% if flt.start_value %}&start={{ flt.start_value }}&end={{ flt.end_value }}{% endif %}" class="px-4 py-1.5 rounded-lg {% if tab == 'pending' %}bg-royal-600 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-200/60{% endif %}">For Accept <span class="ml-1 text-[10px] opacity-70">{{ counts.pending }}</span></a>
+        <a href="?tab=archived&role={{ role_filter }}{% if flt.start_value %}&start={{ flt.start_value }}&end={{ flt.end_value }}{% endif %}" class="px-4 py-1.5 rounded-lg {% if tab == 'archived' %}bg-royal-600 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-200/60{% endif %}">Archived / Revoked <span class="ml-1 text-[10px] opacity-70">{{ counts.archived }}</span></a>
+      </div>
+      <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-sm font-semibold">
+        <a href="?tab={{ tab }}&role=all{% if flt.start_value %}&start={{ flt.start_value }}&end={{ flt.end_value }}{% endif %}" class="px-4 py-1.5 rounded-lg {% if role_filter == 'all' %}bg-navy-800 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-200/60{% endif %}">All</a>
+        <a href="?tab={{ tab }}&role=student{% if flt.start_value %}&start={{ flt.start_value }}&end={{ flt.end_value }}{% endif %}" class="px-4 py-1.5 rounded-lg {% if role_filter == 'student' %}bg-navy-800 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-200/60{% endif %}">Students</a>
+        <a href="?tab={{ tab }}&role=professor{% if flt.start_value %}&start={{ flt.start_value }}&end={{ flt.end_value }}{% endif %}" class="px-4 py-1.5 rounded-lg {% if role_filter == 'professor' %}bg-navy-800 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-200/60{% endif %}">Professors</a>
+      </div>
+      {% if tab != "approved" %}<a href="{% url 'seats:approvals' %}?tab={{ tab }}" class="text-sm font-semibold text-royal-600 hover:underline">Review in Account approvals &rarr;</a>{% endif %}
+    </div>
+
+    {% include "seats/auth/_date_filter.html" %}
+
+    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200">
+            <th class="p-3">NAME</th><th class="p-3">USERNAME</th><th class="p-3">ROLE</th>
+            <th class="p-3">ID</th><th class="p-3">COURSE / DEPARTMENT</th><th class="p-3">STATUS</th>
+            <th class="p-3">{% if tab == "pending" %}REGISTERED{% elif tab == "approved" %}APPROVED{% else %}ARCHIVED{% endif %}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for p in profiles %}
+            <tr>
+              <td class="p-3 font-medium text-slate-800">{{ p.full_name }}<div class="text-xs text-slate-400 font-normal">{{ p.user.email }}</div></td>
+              <td class="p-3 text-slate-600">{{ p.user.username }}</td>
+              <td class="p-3 text-slate-600">{{ p.get_role_display }}</td>
+              <td class="p-3 text-slate-600">{{ p.id_number }}</td>
+              <td class="p-3 text-slate-600">{% if p.role == "student" %}{{ p.course }} &bull; {{ p.year_level }}{% else %}{{ p.department }}{% endif %}</td>
+              <td class="p-3 text-xs font-bold {% if p.status == 'approved' %}text-emerald-700{% elif p.status == 'pending' %}text-amber-700{% else %}text-rose-700{% endif %}">{{ p.get_status_display }}</td>
+              <td class="p-3 text-slate-500 whitespace-nowrap">{{ p.event_at|date:"M j, Y H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="p-6 text-center text-slate-500">No accounts found{% if flt.is_filtered %} for these dates{% endif %}.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+{% endblock %}

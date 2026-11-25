@@ -1,0 +1,180 @@
+<!-- ============ MODALS & OVERLAYS ============ -->
+  <!-- Modal 1: Student Single Seat Rule Validation Error -->
+  <div id="modal-single-rule" class="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-rose-100">
+      <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-rose-600 text-xl mx-auto">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div class="text-center space-y-1">
+        <h3 class="font-bold text-navy-900 text-lg">Single Seat Booking Restriction</h3>
+        <p class="text-xs text-slate-600">To keep library resources fair for everyone, students are permitted <span class="font-bold text-slate-800">1 active or upcoming reservation</span> at a time.</p>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 space-y-1">
+        <span class="font-bold flex items-center space-x-1.5">
+          <i class="fa-solid fa-ticket text-amber-600"></i>
+          <span>Your Current Active Booking:</span>
+        </span>
+        <p id="single-rule-current-text" class="text-slate-700 pl-5 font-medium">Seat A15 • Zone A (Quiet Study) (11:00 - 13:00)</p>
+      </div>
+      <div class="flex flex-col space-y-2 pt-2">
+        <button onclick="cancelStudentCurrentAndBookNew()" class="w-full bg-rose-600 text-white font-semibold py-2 rounded-xl text-xs hover:bg-rose-700 transition-all">
+          Cancel Current Booking & Reserve New Seat
+        </button>
+        <button onclick="closeModal('modal-single-rule'); switchTab('student', 'bookings')" class="w-full bg-slate-100 text-slate-700 font-semibold py-2 rounded-xl text-xs hover:bg-slate-200">
+          View My Current Booking
+        </button>
+        <button onclick="closeModal('modal-single-rule')" class="text-xs text-slate-400 hover:text-slate-600 py-1">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Student Seat Reservation Confirm Modal -->
+  <div id="modal-student-reserve" class="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+        <div>
+          <span class="text-[10px] font-bold text-royal-600 bg-sky-100 px-2 py-0.5 rounded uppercase">Request Seat</span>
+          <h3 id="modal-seat-title" class="font-bold text-lg text-navy-900">Seat A11</h3>
+        </div>
+        <button onclick="closeModal('modal-student-reserve')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div>
+            <span class="text-slate-400 block">Zone:</span>
+            <span id="modal-seat-zone" class="font-semibold text-slate-700">Zone A - Quiet Study</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block">Features:</span>
+            <span id="modal-seat-features" class="font-semibold text-slate-700">Power Outlet, Window</span>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div class="grid grid-cols-3 gap-2">
+            <label class="block"><span class="block font-semibold text-slate-700 mb-1">Date</span>
+              <input type="date" id="modal-res-date" onchange="onSlotInputsChanged('student')" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+            <label class="block"><span class="block font-semibold text-slate-700 mb-1">Start time</span>
+              <input type="time" id="modal-res-start" step="900" oninput="onSlotInputsChanged('student')" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+            <label class="block"><span class="block font-semibold text-slate-700 mb-1">End time</span>
+              <input type="time" id="modal-res-end" step="900" oninput="onSlotInputsChanged('student')" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+          </div>
+          <p id="modal-slot-hint" class="text-[11px] text-slate-500"></p>
+          <div id="modal-slot-conflict" class="hidden bg-rose-50 border border-rose-200 rounded-lg p-3 text-[11px] text-rose-800"></div>
+        </div>
+        <div>
+          <span class="block font-semibold text-slate-700 mb-1">Reservation queue for this seat on <span id="modal-queue-date" class="text-royal-600"></span>:</span>
+          <div id="modal-seat-queue" class="space-y-1 max-h-32 overflow-y-auto"></div>
+        </div>
+      </div>
+      <div class="pt-2 flex space-x-3">
+        <button onclick="closeModal('modal-student-reserve')" class="flex-1 bg-slate-100 text-slate-600 font-semibold py-2 rounded-xl text-xs hover:bg-slate-200">Cancel</button>
+        <button onclick="confirmStudentBooking()" class="flex-1 bg-royal-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-royal-700 shadow-md">Send Reservation Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Professor Batch Booking Modal -->
+  <div id="modal-prof-batch" class="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-lg text-navy-900 flex items-center space-x-2">
+          <i class="fa-solid fa-users-rectangle text-royal-600"></i>
+          <span>Faculty Batch Reservation</span>
+        </h3>
+        <button onclick="closeModal('modal-prof-batch')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Selected Seats (<span id="prof-batch-count-text">0</span>):</label>
+          <div id="prof-batch-seats-list" class="flex flex-wrap gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-lg max-h-24 overflow-y-auto">
+            <!-- Seats tags injected -->
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Session / Class Title:</label>
+          <input type="text" id="prof-session-title-input" placeholder="e.g. CS101 Research Consultation" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500">
+        </div>
+        <div class="space-y-2">
+          <div class="grid grid-cols-3 gap-2">
+            <label class="block"><span class="block font-semibold text-slate-700 mb-1">Date</span>
+              <input type="date" id="prof-res-date" onchange="onSlotInputsChanged('prof')" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+            <label class="block"><span class="block font-semibold text-slate-700 mb-1">Start time</span>
+              <input type="time" id="prof-res-start" step="900" oninput="onSlotInputsChanged('prof')" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+            <label class="block"><span class="block font-semibold text-slate-700 mb-1">End time</span>
+              <input type="time" id="prof-res-end" step="900" oninput="onSlotInputsChanged('prof')" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+          </div>
+          <p id="prof-slot-hint" class="text-[11px] text-slate-500"></p>
+          <div id="prof-slot-conflict" class="hidden bg-rose-50 border border-rose-200 rounded-lg p-3 text-[11px] text-rose-800"></div>
+        </div>
+      </div>
+      <div class="pt-2 flex space-x-3">
+        <button onclick="closeModal('modal-prof-batch')" class="flex-1 bg-slate-100 text-slate-600 font-semibold py-2 rounded-xl text-xs hover:bg-slate-200">Cancel</button>
+        <button onclick="confirmProfBatchBooking()" class="flex-1 bg-royal-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-royal-700 shadow-md">Send Batch Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit profile (name change request, applied only after Admin approval) -->
+  <div id="modal-edit-profile" class="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-lg text-navy-900 flex items-center space-x-2"><i class="fa-solid fa-user-pen text-royal-600"></i><span>Edit profile</span></h3>
+        <button onclick="closeModal('modal-edit-profile')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <p class="text-xs text-slate-500">Your name is not changed right away. The request goes to the Admin, and the new name applies once it is approved.</p>
+      <div id="edit-profile-pending" class="hidden bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900"></div>
+      <div class="space-y-3 text-xs">
+        <label class="block"><span class="block font-semibold text-slate-700 mb-1">First name</span>
+          <input id="edit-first-name" maxlength="80" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+        <label class="block"><span class="block font-semibold text-slate-700 mb-1">Middle name <span class="font-normal text-slate-400">(optional)</span></span>
+          <input id="edit-middle-name" maxlength="80" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+        <label class="block"><span class="block font-semibold text-slate-700 mb-1">Last name</span>
+          <input id="edit-last-name" maxlength="80" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:ring-2 focus:ring-royal-500"></label>
+      </div>
+      <div class="pt-2 flex space-x-3">
+        <button onclick="closeModal('modal-edit-profile')" class="flex-1 bg-slate-100 text-slate-600 font-semibold py-2 rounded-xl text-xs hover:bg-slate-200">Cancel</button>
+        <button onclick="submitNameRequest()" class="flex-1 bg-royal-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-royal-700 shadow-md">Send for approval</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: seats of a group reservation -->
+  <div id="modal-group" class="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+        <div>
+          <span class="text-[10px] font-bold text-royal-600 bg-sky-100 px-2 py-0.5 rounded uppercase">Group reservation</span>
+          <h3 id="group-modal-title" class="font-bold text-lg text-navy-900">Seats</h3>
+          <p id="group-modal-sub" class="text-xs text-slate-500"></p>
+        </div>
+        <button onclick="closeModal('modal-group')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div id="group-modal-body" class="space-y-3 max-h-[60vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- Modal: seat inspector - the seat's reservation queue for a date -->
+  <div id="modal-seat-schedule" class="fixed inset-0 bg-navy-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+        <div>
+          <span class="text-[10px] font-bold text-royal-600 bg-sky-100 px-2 py-0.5 rounded uppercase">Seat schedule</span>
+          <h3 id="seat-schedule-title" class="font-bold text-lg text-navy-900">Seat</h3>
+          <p id="seat-schedule-sub" class="text-xs text-slate-500"></p>
+        </div>
+        <button onclick="closeModal('modal-seat-schedule')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="flex items-center justify-between gap-2 text-xs">
+        <button onclick="shiftSeatSchedule(-1)" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="flex items-center gap-2">
+          <input type="date" id="seat-schedule-date" onchange="loadSeatSchedule()" class="border border-slate-300 rounded-lg p-1.5 font-medium">
+          <span id="seat-schedule-today-label" class="font-bold text-royal-600"></span>
+        </div>
+        <button onclick="shiftSeatSchedule(1)" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+      <div id="seat-schedule-body" class="space-y-2 max-h-[50vh] overflow-y-auto"></div>
+      <div id="seat-schedule-actions" class="flex flex-wrap gap-2 pt-1"></div>
+    </div>
+  </div>
